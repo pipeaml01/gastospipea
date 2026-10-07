@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 255 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "email"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial income or expense transaction",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["expense", "income"] },
+        "amount": { "type": "number" },
+        "category": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 300 },
+        "date": { "type": "string", "maxLength": 20 },
+        "time": { "type": "string", "maxLength": 10 },
+        "paymentMethod": { "type": "string", "enum": ["cash", "debit", "credit"] },
+        "cardId": { "type": "string", "maxLength": 128 },
+        "incomeType": { "type": "string", "enum": ["salary", "sale", "commission", "other"] },
+        "destination": { "type": "string", "enum": ["cash", "account"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "type", "amount", "category", "date"]
+    },
+    "RecurringPayment": {
+      "title": "RecurringPayment",
+      "description": "Monthly recurring bill or subscription",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "amount": { "type": "number" },
+        "dayDue": { "type": "number" },
+        "isPaidCurrentMonth": { "type": "boolean" },
+        "lastPaidDate": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "name", "amount", "dayDue", "isPaidCurrentMonth"]
+    },
+    "CreditCard": {
+      "title": "CreditCard",
+      "description": "Credit card configured by the user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "bank": { "type": "string", "maxLength": 100 },
+        "last4": { "type": "string", "maxLength": 10 },
+        "color": { "type": "string", "maxLength": 30 },
+        "limit": { "type": "number" }
+      },
+      "required": ["id", "userId", "bank", "last4", "color", "limit"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile metadata document"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Transactions belonging strictly to the user"
+    },
+    "/users/{userId}/recurring/{recurringId}": {
+      "schema": "RecurringPayment",
+      "description": "Recurring bills and subscriptions belonging strictly to the user"
+    },
+    "/users/{userId}/cards/{cardId}": {
+      "schema": "CreditCard",
+      "description": "Credit cards belonging strictly to the user"
+    }
+  }
+}

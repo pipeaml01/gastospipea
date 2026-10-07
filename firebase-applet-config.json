@@ -1,0 +1,12 @@
+{
+  "projectId": "amzdocs",
+  "appId": "1:486291651305:web:7b358cfb76d9f0bfd00e78",
+  "apiKey": "AIzaSyBAWsyHBGGTdlR8cxwCHiScTF24y1oqyRU",
+  "authDomain": "amzdocs.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-finanzasimple-a11a5da2-40d9-4a45-bde7-3bbaeee51f27",
+  "storageBucket": "amzdocs.firebasestorage.app",
+  "messagingSenderId": "486291651305",
+  "measurementId": "",
+  "oAuthClientId": "486291651305-m8fqd0c8u89lrhktqjtv0sdcsvpb5t01.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
+}

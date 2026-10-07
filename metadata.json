@@ -1,0 +1,6 @@
+{
+  "name": "FinanzaSimple",
+  "description": "Aplicación web completa para control de finanzas personales en la nube, con cuentas de usuario, registro, inicio de sesión y sincronización en tiempo real.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

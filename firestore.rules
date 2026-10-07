@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.uid == userId &&
+        data.email is string && data.email.size() <= 255 &&
+        (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidTransaction(data, userId) {
+      return data.userId == userId &&
+        data.id is string && data.id.size() <= 128 &&
+        (data.type == 'expense' || data.type == 'income') &&
+        data.amount is number && data.amount >= 0 &&
+        data.category is string && data.category.size() <= 100 &&
+        data.date is string && data.date.size() <= 20 &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 300)) &&
+        (!('time' in data) || (data.time is string && data.time.size() <= 10)) &&
+        (!('paymentMethod' in data) || (data.paymentMethod in ['cash', 'debit', 'credit'])) &&
+        (!('cardId' in data) || (data.cardId is string && data.cardId.size() <= 128)) &&
+        (!('incomeType' in data) || (data.incomeType in ['salary', 'sale', 'commission', 'other'])) &&
+        (!('destination' in data) || (data.destination in ['cash', 'account'])) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    function isValidRecurring(data, userId) {
+      return data.userId == userId &&
+        data.id is string && data.id.size() <= 128 &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        data.amount is number && data.amount >= 0 &&
+        data.dayDue is number && data.dayDue >= 1 && data.dayDue <= 31 &&
+        data.isPaidCurrentMonth is bool &&
+        (!('lastPaidDate' in data) || (data.lastPaidDate is string && data.lastPaidDate.size() <= 50));
+    }
+
+    function isValidCreditCard(data, userId) {
+      return data.userId == userId &&
+        data.id is string && data.id.size() <= 128 &&
+        data.bank is string && data.bank.size() > 0 && data.bank.size() <= 100 &&
+        data.last4 is string && data.last4.size() <= 10 &&
+        data.color is string && data.color.size() <= 30 &&
+        data.limit is number && data.limit >= 0;
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming(), userId);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming(), userId);
+      allow delete: if isOwner(userId);
+
+      // User Transactions Subcollection
+      match /transactions/{transactionId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(transactionId) && isValidTransaction(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(transactionId) && isValidTransaction(incoming(), userId) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(transactionId);
+      }
+
+      // User Recurring Payments Subcollection
+      match /recurring/{recurringId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(recurringId) && isValidRecurring(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(recurringId) && isValidRecurring(incoming(), userId) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(recurringId);
+      }
+
+      // User Credit Cards Subcollection
+      match /cards/{cardId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(cardId) && isValidCreditCard(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(cardId) && isValidCreditCard(incoming(), userId) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(cardId);
+      }
+    }
+  }
+}
